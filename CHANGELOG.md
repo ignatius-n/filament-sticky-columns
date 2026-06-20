@@ -9,8 +9,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
-## [1.0.8] — 2026-06-20
-
 ### Fixed
 - Summary row totals no longer sit under sticky columns when scrolling horizontally. Sticky styles now follow logical column indices (respecting `colspan`) and are skipped on merged summary heading cells.
 
