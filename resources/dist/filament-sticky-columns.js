@@ -567,31 +567,19 @@
     });
   }
 
-  function isPinOnlyMutation(mutations) {
-    return mutations.every((mutation) => {
-      const changed = [...mutation.addedNodes, ...mutation.removedNodes];
-      return changed.length && changed.every((node) => (
-        node.nodeType === Node.ELEMENT_NODE &&
-        node.hasAttribute?.(PIN_ATTR)
-      ));
-    });
-  }
+  function bindLivewireHooks() {
+    if (!window.Livewire || window.Livewire._stickyColumnsHooksBound) return;
+    window.Livewire._stickyColumnsHooksBound = true;
 
-  function bindDomObserver() {
-    if (!document.body) {
-      document.addEventListener('DOMContentLoaded', bindDomObserver, { once: true });
-      return;
+    window.Livewire.hook('commit', ({ succeed }) => {
+      succeed(scheduleBoot);
+    });
+
+    try {
+      window.Livewire.hook('morph.updated', scheduleBoot);
+    } catch (_) {
+      // Hook may not exist in all versions — silently ignore
     }
-
-    if (document.body._stickyDomObserverBound) return;
-    document.body._stickyDomObserverBound = true;
-
-    const observer = new MutationObserver((mutations) => {
-      if (isPinOnlyMutation(mutations)) return;
-      scheduleBoot();
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   // Re-apply when theme toggles (Filament toggles `dark` on <html> or <body>)
@@ -637,22 +625,10 @@
     boot();
   }
 
-  // ── Livewire v3 (Filament v3 / v4) ───────────────────────────────────────
-  if (window.Livewire) {
-    // Fires after every network round-trip
-    window.Livewire.hook('commit', ({ succeed }) => {
-      succeed(scheduleBoot);
-    });
-
-    // Fires after Livewire has morphed the DOM (v3.x)
-    if (typeof window.Livewire.hook === 'function') {
-      try {
-        window.Livewire.hook('morph.updated', scheduleBoot);
-      } catch (_) {
-        // Hook may not exist in all versions — silently ignore
-      }
-    }
-  }
+  // ── Livewire (Filament v3/v4/v5) ─────────────────────────────────────────
+  bindLivewireHooks();
+  document.addEventListener('livewire:init', bindLivewireHooks);
+  document.addEventListener('livewire:initialized', bindLivewireHooks);
 
   // ── Livewire v4 (Filament v5) ─────────────────────────────────────────────
   document.addEventListener('livewire:navigated', scheduleBoot);
@@ -664,7 +640,6 @@
 
   // Theme toggles (dark/light)
   bindThemeObserver();
-  bindDomObserver();
 
   // ── Manual re-trigger ────────────────────────────────────────────────────
   window.FilamentStickyColumns = { refresh: boot };
