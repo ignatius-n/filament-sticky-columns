@@ -70,6 +70,20 @@ thead [data-sticky-applied] {
   z-index: 20 !important;
 }
 
+/* Mark sticky headers with a small pin icon beside the label. */
+[data-sticky-pin-icon] {
+  flex-shrink: 0;
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-inline-end: 0.375rem;
+  vertical-align: -0.125rem;
+  background-color: currentColor;
+  opacity: 0.65;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.5 2.75h7m-5.25 0 .5 5-3.25 2.75v1.25h9v-1.25L11.25 7.75l.5-5M10 11.75v5.5' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.5 2.75h7m-5.25 0 .5 5-3.25 2.75v1.25h9v-1.25L11.25 7.75l.5-5M10 11.75v5.5' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
 /* ── Surface / background colours ────────────────────────────────────────── */
 
 /* Light mode — Filament v3/v4/v5 all expose --body-bg or similar vars */

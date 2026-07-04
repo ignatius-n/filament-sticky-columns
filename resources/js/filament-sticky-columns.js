@@ -20,6 +20,7 @@
   const ATTR_OFFSET  = 'data-sticky-offset';    // manual px offset
   const ATTR_Z       = 'data-sticky-z-index';   // z-index override
   const APPLIED_ATTR = 'data-sticky-applied';   // set by JS after processing
+  const PIN_ATTR     = 'data-sticky-pin-icon';  // header pin marker inserted by JS
 
   const SHADOW_LEFT  = '4px 0 8px -2px var(--sticky-shadow-color, rgba(0,0,0,.12))';
   const SHADOW_RIGHT = '-4px 0 8px -2px var(--sticky-shadow-color, rgba(0,0,0,.12))';
@@ -75,6 +76,8 @@
    * resolution is not poisoned by stale inline colours after light/dark toggle.
    */
   function resetStickyPresentation() {
+    document.querySelectorAll(`[${PIN_ATTR}]`).forEach((el) => el.remove());
+
     document.querySelectorAll(`[${APPLIED_ATTR}]`).forEach((el) => {
       el.removeAttribute(APPLIED_ATTR);
       el.style.position = '';
@@ -206,6 +209,25 @@
     }
 
     cell.setAttribute(APPLIED_ATTR, config.position);
+
+    if (isHeader) {
+      ensureStickyHeaderPin(cell);
+    }
+  }
+
+  function ensureStickyHeaderPin(cell) {
+    if (cell.querySelector(`[${PIN_ATTR}]`)) return;
+
+    const target =
+      cell.querySelector('.fi-ta-header-cell-sort-btn') ||
+      cell.firstElementChild ||
+      cell;
+
+    const icon = document.createElement('span');
+    icon.setAttribute(PIN_ATTR, '');
+    icon.setAttribute('aria-hidden', 'true');
+
+    target.insertBefore(icon, target.firstChild);
   }
 
   function applyStickyToRow(cells, stickyMap, isHeader) {
@@ -527,10 +549,49 @@
 
   // ─── Boot ───────────────────────────────────────────────────────────────────
 
+  let bootScheduled = false;
+
   function boot() {
     resetStickyPresentation();
     applyStickyColumns();
     bindScrollShadows();
+  }
+
+  function scheduleBoot() {
+    if (bootScheduled) return;
+
+    bootScheduled = true;
+    requestAnimationFrame(() => {
+      bootScheduled = false;
+      boot();
+    });
+  }
+
+  function isPinOnlyMutation(mutations) {
+    return mutations.every((mutation) => {
+      const changed = [...mutation.addedNodes, ...mutation.removedNodes];
+      return changed.length && changed.every((node) => (
+        node.nodeType === Node.ELEMENT_NODE &&
+        node.hasAttribute?.(PIN_ATTR)
+      ));
+    });
+  }
+
+  function bindDomObserver() {
+    if (!document.body) {
+      document.addEventListener('DOMContentLoaded', bindDomObserver, { once: true });
+      return;
+    }
+
+    if (document.body._stickyDomObserverBound) return;
+    document.body._stickyDomObserverBound = true;
+
+    const observer = new MutationObserver((mutations) => {
+      if (isPinOnlyMutation(mutations)) return;
+      scheduleBoot();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   // Re-apply when theme toggles (Filament toggles `dark` on <html> or <body>)
@@ -543,7 +604,7 @@
       const isDark = getIsDark();
       if (isDark === lastIsDark) return;
       lastIsDark = isDark;
-      requestAnimationFrame(boot);
+      scheduleBoot();
     };
 
     const observer = new MutationObserver(schedule);
@@ -580,13 +641,13 @@
   if (window.Livewire) {
     // Fires after every network round-trip
     window.Livewire.hook('commit', ({ succeed }) => {
-      succeed(() => requestAnimationFrame(boot));
+      succeed(scheduleBoot);
     });
 
     // Fires after Livewire has morphed the DOM (v3.x)
     if (typeof window.Livewire.hook === 'function') {
       try {
-        window.Livewire.hook('morph.updated', () => requestAnimationFrame(boot));
+        window.Livewire.hook('morph.updated', scheduleBoot);
       } catch (_) {
         // Hook may not exist in all versions — silently ignore
       }
@@ -594,8 +655,8 @@
   }
 
   // ── Livewire v4 (Filament v5) ─────────────────────────────────────────────
-  document.addEventListener('livewire:navigated', () => requestAnimationFrame(boot));
-  document.addEventListener('livewire:update',    () => requestAnimationFrame(boot));
+  document.addEventListener('livewire:navigated', scheduleBoot);
+  document.addEventListener('livewire:update',    scheduleBoot);
 
   // ── Alpine.js ─────────────────────────────────────────────────────────────
   document.addEventListener('alpine:initialized', boot);
@@ -603,6 +664,7 @@
 
   // Theme toggles (dark/light)
   bindThemeObserver();
+  bindDomObserver();
 
   // ── Manual re-trigger ────────────────────────────────────────────────────
   window.FilamentStickyColumns = { refresh: boot };

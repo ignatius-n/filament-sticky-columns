@@ -9,6 +9,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+- Sticky table headers now show a small pin icon before the column label.
+
 ## [1.0.8] — 2026-06-20
 
 ### Fixed
