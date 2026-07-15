@@ -3,6 +3,8 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/zeeshantariq/filament-sticky-columns.svg)](https://packagist.org/packages/zeeshantariq/filament-sticky-columns)
 [![Total Downloads](https://img.shields.io/packagist/dt/zeeshantariq/filament-sticky-columns.svg)](https://packagist.org/packages/zeeshantariq/filament-sticky-columns)
 [![License](https://img.shields.io/packagist/l/zeeshantariq/filament-sticky-columns.svg)](LICENSE.md)
+[![Plumb score](https://plumbphp.dev/badges/zeeshantariq/filament-sticky-columns/composite.svg)](https://plumbphp.dev/zeeshantariq/filament-sticky-columns)
+[![Scanned by Plumb](https://plumbphp.dev/badges/zeeshantariq/filament-sticky-columns/scanned.svg)](https://plumbphp.dev/zeeshantariq/filament-sticky-columns)
 
 Sticky (frozen) table columns for **Filament v3, v4, and v5**.
 
