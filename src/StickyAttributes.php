@@ -14,9 +14,9 @@ use Filament\Tables\Columns\Column;
 final class StickyAttributes
 {
     /**
-     * @param  array<string, mixed>  $attributes
+     * @param  array<string, mixed>|\Closure  $attributes
      */
-    public static function applyToColumn(Column $column, array $attributes, bool $merge): void
+    public static function applyToColumn(Column $column, array|\Closure $attributes, bool $merge): void
     {
         if (method_exists($column, 'extraCellAttributes')) {
             $column->extraCellAttributes($attributes, $merge);
@@ -24,6 +24,11 @@ final class StickyAttributes
 
         if (method_exists($column, 'extraHeaderAttributes')) {
             $column->extraHeaderAttributes($attributes, $merge);
+        }
+
+        // Closures are for th/td only — avoid putting dynamic sticky attrs on inner wrappers.
+        if ($attributes instanceof \Closure) {
+            return;
         }
 
         if ($merge) {
