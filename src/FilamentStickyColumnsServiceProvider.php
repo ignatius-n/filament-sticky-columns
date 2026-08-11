@@ -8,10 +8,16 @@ use Composer\InstalledVersions;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
+use Filament\Support\Facades\FilamentView;
 use Filament\Tables\Columns\Column;
+use Filament\Tables\Table;
+use Filament\Tables\View\TablesRenderHook;
+use Livewire\Livewire;
 use ReflectionMethod;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use ZeeshanTariq\FilamentStickyColumns\Support\UserStickyManager;
+use ZeeshanTariq\FilamentStickyColumns\Support\UserStickyRegistry;
 
 class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
 {
@@ -32,11 +38,13 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
             $supportsMerge = (new ReflectionMethod(Column::class, 'extraAttributes'))->getNumberOfParameters() >= 2;
         }
 
-        if (class_exists(Column::class) && !Column::hasMacro('sticky')) {
+        if (class_exists(Column::class) && ! Column::hasMacro('sticky')) {
             Column::macro('sticky', function (bool $condition = true, ?int $offset = null, ?int $zIndex = null) use ($supportsMerge) {
                 if (! $condition) {
                     return $this;
                 }
+
+                UserStickyRegistry::markForced($this, 'left');
 
                 $attrs = [
                     'data-sticky'         => 'left',
@@ -57,6 +65,8 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
                     return $this;
                 }
 
+                UserStickyRegistry::markForced($this, 'right');
+
                 $attrs = [
                     'data-sticky'         => 'right',
                     'data-sticky-z-index' => $zIndex ?? config('filament-sticky-columns.z_index', 10),
@@ -70,6 +80,97 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
 
                 return $this;
             });
+        }
+
+        if (class_exists(Column::class) && ! Column::hasMacro('userSticky')) {
+            Column::macro('userSticky', function (bool $condition = true, string $side = 'left') use ($supportsMerge) {
+                if (! $condition) {
+                    return $this;
+                }
+
+                // Filament v4+ feature — no-op on v3.
+                if (FilamentStickyColumnsServiceProvider::filamentMajorVersion() < 4) {
+                    return $this;
+                }
+
+                $side = $side === 'right' ? 'right' : 'left';
+                UserStickyRegistry::markUserStickyable($this, $side);
+
+                /** @var Column $column */
+                $column = $this;
+
+                $attrs = function () use ($side, $column): array {
+                    try {
+                        $livewire = $column->getLivewire();
+                    } catch (\Throwable) {
+                        return [];
+                    }
+
+                    if (! method_exists($livewire, 'isTableColumnUserSticky')) {
+                        return [];
+                    }
+
+                    if (! $livewire->isTableColumnUserSticky($column->getName())) {
+                        return [];
+                    }
+
+                    return [
+                        'data-sticky'         => $side,
+                        'data-sticky-z-index' => config('filament-sticky-columns.z_index', 10),
+                    ];
+                };
+
+                StickyAttributes::applyToColumn($this, $attrs, $supportsMerge);
+
+                return $this;
+            });
+        }
+
+        if (class_exists(Table::class) && ! Table::hasMacro('userStickyColumns')) {
+            Table::macro('userStickyColumns', function (bool $condition = true) {
+                if (! $condition) {
+                    return $this;
+                }
+
+                if (FilamentStickyColumnsServiceProvider::filamentMajorVersion() < 4) {
+                    return $this;
+                }
+
+                UserStickyRegistry::enableTable($this);
+
+                return $this;
+            });
+        }
+
+        if (self::filamentMajorVersion() >= 4 && class_exists(FilamentView::class)) {
+            FilamentView::registerRenderHook(
+                TablesRenderHook::TOOLBAR_SEARCH_AFTER,
+                function (): string {
+                    $livewire = Livewire::current();
+
+                    if (! is_object($livewire) || ! method_exists($livewire, 'getTable')) {
+                        return '';
+                    }
+
+                    if (! method_exists($livewire, 'isTableColumnUserSticky')) {
+                        return '';
+                    }
+
+                    try {
+                        $table = $livewire->getTable();
+                    } catch (\Throwable) {
+                        return '';
+                    }
+
+                    if (! $table instanceof Table || ! UserStickyRegistry::isTableEnabled($table)) {
+                        return '';
+                    }
+
+                    return view('filament-sticky-columns::components.user-sticky-trigger', [
+                        'columns' => UserStickyManager::optionsForLivewire($livewire),
+                    ])->render();
+                },
+            );
         }
 
         $assetId = self::filamentAssetId();
@@ -106,7 +207,7 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
         );
 
         $composerVersion = InstalledVersions::getVersion('zeeshantariq/filament-sticky-columns') ?? 'dev';
-        $safeVersion     = preg_replace('/[^0-9A-Za-z]/', '-', (string) $composerVersion) ?: 'dev';
+        $safeVersion     = preg_replace('/[^0-9A-Za-z.\-]/', '-', (string) $composerVersion) ?: 'dev';
 
         return 'filament-sticky-columns-' . $safeVersion . '-' . (string) $mtime;
     }

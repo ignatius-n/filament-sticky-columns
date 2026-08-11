@@ -20,6 +20,7 @@ Pin one or more columns to the left or right edge while the rest of the table sc
 - 🌊 **Scroll shadow** indicator so users know content is scrolled beneath
 - ⚡️ Works with **Livewire v3 and v4** (Filament v3–v5)
 - 🧩 Use **`StickyColumn`** drop-in, or add stickiness to **any** column using **`->sticky()`**
+- 📌 **Filament v4 & v5:** let end users toggle sticky columns from a toolbar dropdown (`->userSticky()`)
 - 🔧 Zero config required; publish only when you need to override defaults
 
 ---
@@ -158,6 +159,39 @@ StickyColumn::make('name')->sticky(offset: 60), // after a 60 px ID column
 
 ---
 
+### Option D — User-toggleable sticky columns (Filament v4 & v5)
+
+Let end users pin/unpin columns from a toolbar dropdown (next to search). No-op on Filament v3.
+
+**1. Add the trait on the List page:**
+
+```php
+use ZeeshanTariq\FilamentStickyColumns\Concerns\InteractsWithUserStickyColumns;
+
+class ListOrders extends ListRecords
+{
+    use InteractsWithUserStickyColumns;
+}
+```
+
+**2. Enable the manager and mark columns:**
+
+```php
+public function table(Table $table): Table
+{
+    return $table
+        ->userStickyColumns()
+        ->columns([
+            TextColumn::make('code')->sticky(),          // always sticky (forced)
+            TextColumn::make('name')->userSticky(),      // user can toggle
+            TextColumn::make('email')->userSticky(),
+            TextColumn::make('notes'),                   // never sticky
+        ]);
+}
+```
+
+---
+
 ## API reference
 
 ### `StickyColumn`
@@ -175,7 +209,15 @@ StickyColumn::make('name')->sticky(offset: 120)
 ```php
 TextColumn::make('name')->sticky(condition: true, offset: null, zIndex: null)
 TextColumn::make('actions')->stickyRight(condition: true, offset: null, zIndex: null)
+
+// Filament v4 & v5 — user can toggle sticky from the toolbar
+TextColumn::make('name')->userSticky()
+TextColumn::make('actions')->userSticky(side: 'right')
+
+$table->userStickyColumns()
 ```
+
+Use `InteractsWithUserStickyColumns` on the Livewire List page when enabling `userStickyColumns()`.
 
 ---
 
