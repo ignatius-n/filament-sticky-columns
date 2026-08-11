@@ -16,8 +16,8 @@ use Livewire\Livewire;
 use ReflectionMethod;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use ZeeshanTariq\FilamentStickyColumns\Support\UserStickyManager;
-use ZeeshanTariq\FilamentStickyColumns\Support\UserStickyRegistry;
+use ZeeshanTariq\FilamentStickyColumns\Support\StickyableManager;
+use ZeeshanTariq\FilamentStickyColumns\Support\StickyableRegistry;
 
 class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
 {
@@ -44,7 +44,7 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
                     return $this;
                 }
 
-                UserStickyRegistry::markForced($this, 'left');
+                StickyableRegistry::markForced($this, 'left');
 
                 $attrs = [
                     'data-sticky'         => 'left',
@@ -65,7 +65,7 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
                     return $this;
                 }
 
-                UserStickyRegistry::markForced($this, 'right');
+                StickyableRegistry::markForced($this, 'right');
 
                 $attrs = [
                     'data-sticky'         => 'right',
@@ -82,8 +82,8 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
             });
         }
 
-        if (class_exists(Column::class) && ! Column::hasMacro('userSticky')) {
-            Column::macro('userSticky', function (bool $condition = true, string $side = 'left') use ($supportsMerge) {
+        if (class_exists(Column::class) && ! Column::hasMacro('stickyable')) {
+            Column::macro('stickyable', function (bool $condition = true, string $side = 'left') use ($supportsMerge) {
                 if (! $condition) {
                     return $this;
                 }
@@ -94,7 +94,7 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
                 }
 
                 $side = $side === 'right' ? 'right' : 'left';
-                UserStickyRegistry::markUserStickyable($this, $side);
+                StickyableRegistry::markStickyable($this, $side);
 
                 /** @var Column $column */
                 $column = $this;
@@ -106,11 +106,11 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
                         return [];
                     }
 
-                    if (! method_exists($livewire, 'isTableColumnUserSticky')) {
+                    if (! method_exists($livewire, 'isTableColumnStickyable')) {
                         return [];
                     }
 
-                    if (! $livewire->isTableColumnUserSticky($column->getName())) {
+                    if (! $livewire->isTableColumnStickyable($column->getName())) {
                         return [];
                     }
 
@@ -126,8 +126,8 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
             });
         }
 
-        if (class_exists(Table::class) && ! Table::hasMacro('userStickyColumns')) {
-            Table::macro('userStickyColumns', function (bool $condition = true) {
+        if (class_exists(Table::class) && ! Table::hasMacro('stickyableColumns')) {
+            Table::macro('stickyableColumns', function (bool $condition = true) {
                 if (! $condition) {
                     return $this;
                 }
@@ -136,7 +136,7 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
                     return $this;
                 }
 
-                UserStickyRegistry::enableTable($this);
+                StickyableRegistry::enableTable($this);
 
                 return $this;
             });
@@ -152,7 +152,7 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
                         return '';
                     }
 
-                    if (! method_exists($livewire, 'isTableColumnUserSticky')) {
+                    if (! method_exists($livewire, 'isTableColumnStickyable')) {
                         return '';
                     }
 
@@ -162,12 +162,12 @@ class FilamentStickyColumnsServiceProvider extends PackageServiceProvider
                         return '';
                     }
 
-                    if (! $table instanceof Table || ! UserStickyRegistry::isTableEnabled($table)) {
+                    if (! $table instanceof Table || ! StickyableRegistry::isTableEnabled($table)) {
                         return '';
                     }
 
-                    return view('filament-sticky-columns::components.user-sticky-trigger', [
-                        'columns' => UserStickyManager::optionsForLivewire($livewire),
+                    return view('filament-sticky-columns::components.stickyable-trigger', [
+                        'columns' => StickyableManager::optionsForLivewire($livewire),
                     ])->render();
                 },
             );

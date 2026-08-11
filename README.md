@@ -10,17 +10,30 @@ Sticky (frozen) table columns for **Filament v3, v4, and v5**.
 
 Pin one or more columns to the left or right edge while the rest of the table scrolls horizontally — just like Excel or Google Sheets.
 
+### New in v1.1.0 — Stickyable columns (Filament v4 & v5)
+
+Let **end users** choose which columns stay pinned, from a toolbar bookmark dropdown next to search:
+
+- Mark columns with `->stickyable()`
+- Enable the manager with `$table->stickyableColumns()`
+- Add `InteractsWithStickyableColumns` on the List page
+- Selections persist in the session; **Reset** clears them
+- Forced `->sticky()` columns stay locked (not listed in the dropdown)
+- No-op on Filament v3
+
+See [Stickyable columns](#stickyable-columns-filament-v4--v5) below.
+
 ---
 
 ## Features
 
 - 📌 Stick columns to the **left** or **right**
+- 🔖 **Stickyable columns** (Filament v4 & v5) — let users pin columns from a toolbar dropdown
 - 🌗 **Dark-mode** aware — inherits Filament panel surface colours automatically
 - 🔢 Multiple sticky columns with **auto-computed offsets**
 - 🌊 **Scroll shadow** indicator so users know content is scrolled beneath
 - ⚡️ Works with **Livewire v3 and v4** (Filament v3–v5)
 - 🧩 Use **`StickyColumn`** drop-in, or add stickiness to **any** column using **`->sticky()`**
-- 📌 **Filament v4 & v5:** let end users toggle sticky columns from a toolbar dropdown (`->userSticky()`)
 - 🔧 Zero config required; publish only when you need to override defaults
 
 ---
@@ -89,6 +102,48 @@ php artisan filament:assets
 ---
 
 ## Usage
+
+### Stickyable columns (Filament v4 & v5)
+
+Give users a **bookmark** control in the table toolbar (next to search) to pin/unpin columns themselves.
+
+**1. Add the trait on the List page:**
+
+```php
+use ZeeshanTariq\FilamentStickyColumns\Concerns\InteractsWithStickyableColumns;
+
+class ListOrders extends ListRecords
+{
+    use InteractsWithStickyableColumns;
+}
+```
+
+**2. Enable the manager and mark columns:**
+
+```php
+public function table(Table $table): Table
+{
+    return $table
+        ->stickyableColumns()
+        ->columns([
+            TextColumn::make('code')->sticky(),          // always sticky (forced)
+            TextColumn::make('name')->stickyable(),      // user can toggle
+            TextColumn::make('email')->stickyable(),
+            TextColumn::make('notes'),                   // never sticky
+        ]);
+}
+```
+
+| API | Role |
+|---|---|
+| `$table->stickyableColumns()` | Shows the toolbar sticky manager |
+| `->stickyable()` / `->stickyable(side: 'right')` | Column appears in the dropdown |
+| `->sticky()` / `->stickyRight()` | Always sticky; **not** listed as toggleable |
+| `InteractsWithStickyableColumns` | Required on the List page for state + session |
+
+Hidden / toggleable-hidden columns are excluded from the dropdown automatically.
+
+---
 
 ### Option A — `StickyColumn` drop-in
 
@@ -159,41 +214,7 @@ StickyColumn::make('name')->sticky(offset: 60), // after a 60 px ID column
 
 ---
 
-### Option D — User-toggleable sticky columns (Filament v4 & v5)
-
-Let end users pin/unpin columns from a toolbar dropdown (next to search). No-op on Filament v3.
-
-**1. Add the trait on the List page:**
-
-```php
-use ZeeshanTariq\FilamentStickyColumns\Concerns\InteractsWithUserStickyColumns;
-
-class ListOrders extends ListRecords
-{
-    use InteractsWithUserStickyColumns;
-}
-```
-
-**2. Enable the manager and mark columns:**
-
-```php
-public function table(Table $table): Table
-{
-    return $table
-        ->userStickyColumns()
-        ->columns([
-            TextColumn::make('code')->sticky(),          // always sticky (forced)
-            TextColumn::make('name')->userSticky(),      // user can toggle
-            TextColumn::make('email')->userSticky(),
-            TextColumn::make('notes'),                   // never sticky
-        ]);
-}
-```
-
----
-
 ## API reference
-
 ### `StickyColumn`
 
 ```php
@@ -211,13 +232,13 @@ TextColumn::make('name')->sticky(condition: true, offset: null, zIndex: null)
 TextColumn::make('actions')->stickyRight(condition: true, offset: null, zIndex: null)
 
 // Filament v4 & v5 — user can toggle sticky from the toolbar
-TextColumn::make('name')->userSticky()
-TextColumn::make('actions')->userSticky(side: 'right')
+TextColumn::make('name')->stickyable()
+TextColumn::make('actions')->stickyable(side: 'right')
 
-$table->userStickyColumns()
+$table->stickyableColumns()
 ```
 
-Use `InteractsWithUserStickyColumns` on the Livewire List page when enabling `userStickyColumns()`.
+Use `InteractsWithStickyableColumns` on the Livewire List page when enabling `stickyableColumns()`.
 
 ---
 

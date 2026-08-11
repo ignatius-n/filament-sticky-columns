@@ -19,7 +19,7 @@
         />
     </x-slot>
 
-    @include('filament-sticky-columns::components.user-sticky-panel', [
+    @include('filament-sticky-columns::components.stickyable-panel', [
         'columns' => $columns,
     ])
 </x-filament::dropdown>

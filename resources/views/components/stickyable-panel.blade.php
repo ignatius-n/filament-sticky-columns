@@ -12,9 +12,9 @@
         <x-filament::link
             color="danger"
             tag="button"
-            wire:click="resetTableUserStickyColumns"
+            wire:click="resetTableStickyableColumns"
             wire:loading.attr="disabled"
-            wire:target="resetTableUserStickyColumns,toggleTableUserStickyColumn"
+            wire:target="resetTableStickyableColumns,toggleTableStickyableColumn"
         >
             Reset
         </x-filament::link>
@@ -25,7 +25,7 @@
             @foreach ($columns as $column)
                 <div
                     class="fi-ta-col-manager-item"
-                    wire:key="user-sticky-{{ $column['name'] }}"
+                    wire:key="stickyable-{{ $column['name'] }}"
                 >
                     <label class="fi-ta-col-manager-label">
                         {{--
@@ -36,10 +36,10 @@
                         <input
                             type="checkbox"
                             class="fi-checkbox-input"
-                            x-bind:checked="($wire.tableUserStickyColumns || []).includes(@js($column['name']))"
-                            x-on:click.prevent="$wire.toggleTableUserStickyColumn(@js($column['name']))"
+                            x-bind:checked="($wire.tableStickyableColumns || []).includes(@js($column['name']))"
+                            x-on:click.prevent="$wire.toggleTableStickyableColumn(@js($column['name']))"
                             wire:loading.attr="disabled"
-                            wire:target="toggleTableUserStickyColumn,resetTableUserStickyColumns"
+                            wire:target="toggleTableStickyableColumn,resetTableStickyableColumns"
                         />
 
                         <span>{{ $column['label'] }}</span>

@@ -7,7 +7,7 @@ namespace ZeeshanTariq\FilamentStickyColumns\Concerns;
 use Filament\Tables\Columns\Column;
 use ReflectionMethod;
 use ZeeshanTariq\FilamentStickyColumns\StickyAttributes;
-use ZeeshanTariq\FilamentStickyColumns\Support\UserStickyRegistry;
+use ZeeshanTariq\FilamentStickyColumns\Support\StickyableRegistry;
 
 trait HasStickyColumn
 {
@@ -119,7 +119,7 @@ trait HasStickyColumn
             return;
         }
 
-        UserStickyRegistry::markForced($this, $this->stickyPosition);
+        StickyableRegistry::markForced($this, $this->stickyPosition);
 
         $attrs = [
             'data-sticky'         => $this->stickyPosition,

@@ -11,7 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 - Sticky table headers now show a small pin icon before the column label.
-- **Filament v4 & v5:** end users can toggle sticky columns via a toolbar dropdown (`->userSticky()` + `$table->userStickyColumns()` + `InteractsWithUserStickyColumns` on the List page), with live toggles, Reset, and a solid bookmark trigger icon. Hidden/toggleable-off columns are excluded. No-op on Filament v3.
+- **Filament v4 & v5:** end users can toggle sticky columns via a toolbar dropdown (`->stickyable()` + `$table->stickyableColumns()` + `InteractsWithStickyableColumns` on the List page), with live toggles, Reset, and a solid bookmark trigger icon. Hidden/toggleable-off columns are excluded. No-op on Filament v3.
 
 ## [1.0.8] — 2026-06-20
 

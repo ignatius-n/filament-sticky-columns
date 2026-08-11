@@ -10,14 +10,14 @@ use Filament\Tables\Table;
 /**
  * @internal
  */
-final class UserStickyManager
+final class StickyableManager
 {
     /**
      * @return list<array{name: string, label: string, isSticky: bool}>
      */
     public static function optionsForLivewire(object $livewire): array
     {
-        if (! method_exists($livewire, 'getTable') || ! method_exists($livewire, 'isTableColumnUserSticky')) {
+        if (! method_exists($livewire, 'getTable') || ! method_exists($livewire, 'isTableColumnStickyable')) {
             return [];
         }
 
@@ -38,7 +38,7 @@ final class UserStickyManager
                 continue;
             }
 
-            if (! UserStickyRegistry::isUserStickyable($column)) {
+            if (! StickyableRegistry::isStickyable($column)) {
                 continue;
             }
 
@@ -55,7 +55,7 @@ final class UserStickyManager
             $options[] = [
                 'name' => $name,
                 'label' => trim(strip_tags((string) $column->getLabel())) ?: $name,
-                'isSticky' => $livewire->isTableColumnUserSticky($name),
+                'isSticky' => $livewire->isTableColumnStickyable($name),
             ];
         }
 

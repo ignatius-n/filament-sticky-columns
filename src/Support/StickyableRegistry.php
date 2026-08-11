@@ -9,14 +9,14 @@ use Filament\Tables\Table;
 use WeakMap;
 
 /**
- * Tracks user-toggleable sticky columns, forced sticky columns, and enabled tables.
+ * Tracks stickyable columns, forced sticky columns, and enabled tables.
  *
  * @internal
  */
-final class UserStickyRegistry
+final class StickyableRegistry
 {
     /** @var WeakMap<Column, string>|null side: left|right */
-    private static ?WeakMap $userStickyable = null;
+    private static ?WeakMap $stickyable = null;
 
     /** @var WeakMap<Column, string>|null side: left|right */
     private static ?WeakMap $forcedSticky = null;
@@ -24,10 +24,10 @@ final class UserStickyRegistry
     /** @var WeakMap<Table, bool>|null */
     private static ?WeakMap $enabledTables = null;
 
-    public static function markUserStickyable(Column $column, string $side = 'left'): void
+    public static function markStickyable(Column $column, string $side = 'left'): void
     {
-        self::$userStickyable ??= new WeakMap;
-        self::$userStickyable[$column] = $side === 'right' ? 'right' : 'left';
+        self::$stickyable ??= new WeakMap;
+        self::$stickyable[$column] = $side === 'right' ? 'right' : 'left';
     }
 
     public static function markForced(Column $column, string $side = 'left'): void
@@ -36,9 +36,9 @@ final class UserStickyRegistry
         self::$forcedSticky[$column] = $side === 'right' ? 'right' : 'left';
     }
 
-    public static function userSideFor(Column $column): ?string
+    public static function stickyableSideFor(Column $column): ?string
     {
-        return self::$userStickyable[$column] ?? null;
+        return self::$stickyable[$column] ?? null;
     }
 
     public static function forcedSideFor(Column $column): ?string
@@ -46,9 +46,9 @@ final class UserStickyRegistry
         return self::$forcedSticky[$column] ?? null;
     }
 
-    public static function isUserStickyable(Column $column): bool
+    public static function isStickyable(Column $column): bool
     {
-        return self::userSideFor($column) !== null;
+        return self::stickyableSideFor($column) !== null;
     }
 
     public static function isForced(Column $column): bool
