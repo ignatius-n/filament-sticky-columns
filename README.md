@@ -10,7 +10,7 @@ Sticky (frozen) table columns for **Filament v3, v4, and v5**.
 
 Pin one or more columns to the left or right edge while the rest of the table scrolls horizontally — just like Excel or Google Sheets.
 
-### New in v1.1.0 — Stickyable columns (Filament v4 & v5)
+### New in v1.2.0 — Stickyable columns (Filament v4 & v5)
 
 Let **end users** choose which columns stay pinned, from a toolbar bookmark dropdown next to search:
 
